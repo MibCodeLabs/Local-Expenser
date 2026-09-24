@@ -1,0 +1,354 @@
+@page "/expenses"
+@rendermode InteractiveServer
+
+@using PersonalExpenseTracker.Models
+@using PersonalExpenseTracker.Services
+
+@inject ExpenseService ExpenseService
+
+<PageTitle>Expenses</PageTitle>
+
+<h1>Expenses</h1> <div class="row"> <!-- Expense Form --> <div class="col-lg-5 mb-4"> <div class="card"> <div class="card-body"> <h2 class="h5"> @(isEditing ? "Edit Expense" : "Add Expense") </h2>
+            <EditForm Model="formExpense"
+                      OnValidSubmit="HandleValidSubmit"
+                      FormName="expenseForm">
+
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label for="title" class="form-label">
+                        Title
+                    </label>
+
+                    <InputText id="title"
+                               class="form-control"
+                               @bind-Value="formExpense.Title" />
+
+                    <ValidationMessage For="@(() => formExpense.Title)" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="amount" class="form-label">
+                        Amount
+                    </label>
+
+                    <InputNumber id="amount"
+                                 class="form-control"
+                                 @bind-Value="formExpense.Amount" />
+
+                    <ValidationMessage For="@(() => formExpense.Amount)" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="category" class="form-label">
+                        Category
+                    </label>
+
+                    <InputSelect id="category"
+                                 class="form-select"
+                                 @bind-Value="formExpense.Category">
+
+                        <option value="">Select a category</option>
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Bills">Bills</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Health">Health</option>
+                        <option value="Education">Education</option>
+                        <option value="Other">Other</option>
+
+                    </InputSelect>
+
+                    <ValidationMessage For="@(() => formExpense.Category)" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="date" class="form-label">
+                        Date
+                    </label>
+
+                    <InputDate id="date"
+                               class="form-control"
+                               @bind-Value="formExpense.Date" />
+
+                    <ValidationMessage For="@(() => formExpense.Date)" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="notes" class="form-label">
+                        Notes
+                    </label>
+
+                    <InputTextArea id="notes"
+                                   class="form-control"
+                                   @bind-Value="formExpense.Notes" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        @errorMessage
+                    </div>
+                }
+
+                <button type="submit"
+                        class="btn btn-primary"
+                        disabled="@isSaving">
+
+                    @(isSaving
+                        ? "Saving..."
+                        : isEditing
+                            ? "Save Changes"
+                            : "Add Expense")
+
+                </button>
+
+                @if (isEditing)
+                {
+                    <button type="button"
+                            class="btn btn-secondary ms-2"
+                            @onclick="CancelEditing"
+                            disabled="@isSaving">
+
+                        Cancel
+
+                    </button>
+                }
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<!-- Expense List -->
+<div class="col-lg-7">
+    <h2 class="h5">Expenses</h2>
+
+    @if (isLoading)
+    {
+        <p>Loading expenses...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage) && expenses.Count == 0)
+    {
+        <div class="alert alert-danger">
+            @errorMessage
+        </div>
+    }
+    else if (expenses.Count == 0)
+    {
+        <div class="alert alert-info">
+            No expenses found.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Amount</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var expense in expenses)
+                    {
+                        <tr>
+                            <td>
+                                @expense.Title
+                            </td>
+
+                            <td>
+                                @expense.Amount.ToString("C")
+                            </td>
+
+                            <td>
+                                @expense.Category
+                            </td>
+
+                            <td>
+                                @expense.Date.ToShortDateString()
+                            </td>
+
+                            <td>
+                                @if (deleteConfirmationId == expense.Id)
+                                {
+                                    <span class="me-2">
+                                        Delete?
+                                    </span>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger me-1"
+                                            @onclick="() => ConfirmDelete(expense.Id)">
+                                        Yes
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-secondary"
+                                            @onclick="CancelDelete">
+                                        No
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary me-1"
+                                            @onclick="() => StartEditing(expense)">
+                                        Edit
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            @onclick="() => AskDelete(expense.Id)">
+                                        Delete
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+</div>
+@code {
+private List<Expense> expenses = [];
+
+private Expense formExpense = CreateNewExpense();
+
+private bool isLoading = true;
+private bool isSaving;
+private bool isEditing;
+
+private int? deleteConfirmationId;
+
+private string? errorMessage;
+
+protected override async Task OnInitializedAsync()
+{
+    await LoadExpensesAsync();
+}
+
+private async Task LoadExpensesAsync()
+{
+    isLoading = true;
+    errorMessage = null;
+
+    try
+    {
+        expenses = await ExpenseService.GetAllAsync();
+    }
+    catch
+    {
+        errorMessage = "Unable to load expenses.";
+    }
+    finally
+    {
+        isLoading = false;
+    }
+}
+
+private async Task HandleValidSubmit()
+{
+    isSaving = true;
+    errorMessage = null;
+
+    try
+    {
+        if (isEditing)
+        {
+            await ExpenseService.UpdateAsync(formExpense);
+        }
+        else
+        {
+            await ExpenseService.CreateAsync(formExpense);
+        }
+
+        formExpense = CreateNewExpense();
+        isEditing = false;
+
+        await LoadExpensesAsync();
+    }
+    catch
+    {
+        errorMessage = isEditing
+            ? "Unable to update the expense."
+            : "Unable to save the expense.";
+    }
+    finally
+    {
+        isSaving = false;
+    }
+}
+
+private void StartEditing(Expense expense)
+{
+    formExpense = new Expense
+    {
+        Id = expense.Id,
+        Title = expense.Title,
+        Amount = expense.Amount,
+        Category = expense.Category,
+        Date = expense.Date,
+        Notes = expense.Notes,
+        CreatedAt = expense.CreatedAt
+    };
+
+    isEditing = true;
+    errorMessage = null;
+}
+
+private void CancelEditing()
+{
+    formExpense = CreateNewExpense();
+    isEditing = false;
+    errorMessage = null;
+}
+
+private void AskDelete(int id)
+{
+    deleteConfirmationId = id;
+}
+
+private void CancelDelete()
+{
+    deleteConfirmationId = null;
+}
+
+private async Task ConfirmDelete(int id)
+{
+    deleteConfirmationId = null;
+    errorMessage = null;
+
+    try
+    {
+        await ExpenseService.DeleteAsync(id);
+
+        if (isEditing && formExpense.Id == id)
+        {
+            CancelEditing();
+        }
+
+        await LoadExpensesAsync();
+    }
+    catch
+    {
+        errorMessage = "Unable to delete the expense.";
+    }
+}
+
+private static Expense CreateNewExpense()
+{
+    return new Expense
+    {
+        Date = DateTime.Today
+    };
+}
+
+}
