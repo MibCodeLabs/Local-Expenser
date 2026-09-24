@@ -13,11 +13,45 @@ public class ExpenseService
         _dbContext = dbContext;
     }
 
-    public async Task<List<Expense>> GetAllAsync()
+    public async Task<List<Expense>> GetAllAsync(
+        string? search = null,
+        string? category = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        bool sortAscending = false)
     {
-        return await _dbContext.Expenses
-            .OrderByDescending(expense => expense.Date)
-            .ToListAsync();
+        IQueryable<Expense> query = _dbContext.Expenses;
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(expense =>
+                expense.Title.Contains(search) ||
+                (expense.Notes != null && expense.Notes.Contains(search)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            query = query.Where(expense =>
+                expense.Category == category);
+        }
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(expense =>
+                expense.Date >= startDate.Value);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(expense =>
+                expense.Date <= endDate.Value);
+        }
+
+        query = sortAscending
+            ? query.OrderBy(expense => expense.Date)
+            : query.OrderByDescending(expense => expense.Date);
+
+        return await query.ToListAsync();
     }
 
     public async Task<Expense> CreateAsync(Expense expense)
