@@ -1,4 +1,38 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+<AuthorizeView>
+
+    <Authorized>
+
+        <span class="nav-link">
+            Hello, @context.User.Identity?.Name
+        </span>
+
+        <a class="nav-link"
+           href="/logout">
+            Logout
+        </a>
+
+    </Authorized>
+
+
+    <NotAuthorized>
+
+        <a class="nav-link"
+           href="/login">
+            Login
+        </a>
+
+        <a class="nav-link"
+           href="/register">
+            Register
+        </a>
+
+    </NotAuthorized>
+
+</AuthorizeView>
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">LocalExpenser </a>
     </div>

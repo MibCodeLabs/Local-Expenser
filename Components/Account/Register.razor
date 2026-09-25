@@ -1,0 +1,74 @@
+@rendermode InteractiveServer
+@page "/register"
+
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@inject SignInManager<IdentityUser> SignInManager
+@inject NavigationManager Navigation
+
+
+<h3>Register</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+
+
+<div class="mb-3">
+    <label>Email</label>
+
+    <input class="form-control" @bind="email" />
+</div>
+
+
+<div class="mb-3">
+    <label>Password</label>
+
+    <input class="form-control" type="password" @bind="password" />
+</div>
+
+
+<button class="btn btn-primary" @onclick="RegisterUser">
+    Register
+</button>
+
+
+@code {
+
+    private string email = "";
+
+    private string password = "";
+
+    private string? errorMessage;
+
+
+    private async Task RegisterUser()
+    {
+        var user = new IdentityUser
+        {
+            UserName = email,
+            Email = email
+        };
+
+
+        var result =
+            await UserManager.CreateAsync(
+                user,
+                password);
+
+
+        if (result.Succeeded)
+        {
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            errorMessage = string.Join(
+     "\n",
+     result.Errors.Select(e => e.Description));
+        }
+    }
+}

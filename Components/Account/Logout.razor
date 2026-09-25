@@ -1,0 +1,22 @@
+@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<IdentityUser> SignInManager
+@inject NavigationManager Navigation
+
+
+<button class="btn btn-link"
+        @onclick="LogoutUser">
+    Logout
+</button>
+
+
+@code {
+
+private async Task LogoutUser()
+{
+    await SignInManager.SignOutAsync();
+
+    Navigation.NavigateTo("/");
+}
+
+}
