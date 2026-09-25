@@ -1,0 +1,165 @@
+@using LocalExpenser.Components.Shared
+@using PersonalExpenseTracker.Models
+@using PersonalExpenseTracker.Services
+
+
+@page "/"
+
+@inject ExpenseService ExpenseService
+
+<PageTitle>Dashboard</PageTitle>
+
+<h1>Dashboard</h1>
+
+@if (loading)
+{
+    <p>Loading dashboard...</p>
+}else if(errorMessage != null)
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+else
+{
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <StatisticCard Title="Total Spending" Value="@totalSpending.ToString("F2")" />
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+            <StatisticCard Title="This Month" Value="@monthlySpending.ToString("F2")" />
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <StatisticCard Title="Total Expenses" Value="@expenseCount.ToString()" />
+        </div>
+
+    </div>
+
+
+    <h3 class="mt-4">
+        Spending By Category
+    </h3>
+
+    @if (categoryTotals.Count == 0)
+    {
+        <p>No expenses found.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var item in categoryTotals)
+            {
+                <li>
+                    @item.Key : @item.Value
+                </li>
+            }
+        </ul>
+    }
+
+
+    <h3 class="mt-4">
+        Recent Expenses
+    </h3>
+
+    @if (recentExpenses.Count == 0)
+    {
+        <p>No expenses yet.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        Title
+                    </th>
+                    <th>
+                        Category
+                    </th>
+                    <th>
+                        Amount
+                    </th>
+                    <th>
+                        
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var expense in recentExpenses)
+                {
+                    <tr>
+                        <td>
+                            @expense.Title
+                        </td>
+
+                        <td>
+                            @expense.Category
+                        </td>
+
+                        <td>
+                            @expense.Amount.ToString("F2")
+                        </td>
+                        <td>
+                            @expense.Date
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+    }
+}
+
+
+@code {
+
+    private decimal totalSpending;
+    private decimal monthlySpending;
+    private int expenseCount;
+
+    private Dictionary<string, decimal> categoryTotals = new();
+
+    private List<Expense> recentExpenses = new();
+
+    private bool loading = true;
+
+    private string? errorMessage;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            totalSpending =
+                await ExpenseService.GetTotalSpendingAsync();
+
+            monthlySpending =
+                await ExpenseService.GetCurrentMonthSpendingAsync();
+
+            expenseCount =
+                await ExpenseService.GetExpenseCountAsync();
+
+            categoryTotals =
+                await ExpenseService.GetSpendingByCategoryAsync();
+
+            recentExpenses =
+                await ExpenseService.GetRecentExpensesAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+}

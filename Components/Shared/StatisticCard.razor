@@ -1,0 +1,21 @@
+<div class="card p-3 shadow-sm">
+    <h6 class="text-muted">
+        @Title
+    </h6>
+
+    <h3>
+        @Value
+    </h3>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+}

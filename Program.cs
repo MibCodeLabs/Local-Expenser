@@ -1,8 +1,8 @@
 using LocalExpenser.Components;
 using PersonalExpenseTracker.Services;
-
 using Microsoft.EntityFrameworkCore;
 using PersonalExpenseTracker.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
