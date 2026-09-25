@@ -7,10 +7,12 @@ namespace PersonalExpenseTracker.Services;
 public class ExpenseService
 {
     private readonly AppDbContext _dbContext;
+    private readonly ILogger<ExpenseService> _logger;
 
-    public ExpenseService(AppDbContext dbContext)
+    public ExpenseService(AppDbContext dbContext, ILogger<ExpenseService> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<List<Expense>> GetAllAsync(
@@ -50,7 +52,16 @@ public class ExpenseService
             ? query.OrderBy(expense => expense.Date)
             : query.OrderByDescending(expense => expense.Date);
 
-        return await query.ToListAsync();
+        try
+        {
+            return await query.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load expenses.");
+
+            throw;
+        }
     }
 
     public async Task<Expense> CreateAsync(Expense expense)
@@ -132,7 +143,7 @@ public class ExpenseService
             .Select(group => new
             {
                 Category = group.Key,
-                Total = Math.Round(group.Sum(expense => expense.Amount), 3)
+                Total = Math.Round(group.Sum(expense => expense.Amount), 3),
             })
             .ToDictionaryAsync(item => item.Category, item => item.Total);
     }

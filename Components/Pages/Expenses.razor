@@ -226,55 +226,72 @@
                     </thead>
 
                     <tbody>
-                        @foreach (var expense in expenses)
+                        @if (isLoading)
                         {
-                            <tr>
-                                <td>
-                                    @expense.Title
-                                </td>
+                            <p>Loading expenses...</p>
+                        }
+                        else if (errorMessage != null)
+                        {
+                            <div class="alert alert-danger">
+                                @errorMessage
+                            </div>
+                        }
+                        else if (!expenses.Any())
+                        {
+                            <p>No expenses found.</p>
+                        }
+                        else
+                        {
+                            @foreach (var expense in expenses)
+                            {
+                                <tr>
+                                    <td>
+                                        @expense.Title
+                                    </td>
 
-                                <td>
-                                    @expense.Amount.ToString("C")
-                                </td>
+                                    <td>
+                                        @expense.Amount.ToString("C")
+                                    </td>
 
-                                <td>
-                                    @expense.Category
-                                </td>
+                                    <td>
+                                        @expense.Category
+                                    </td>
 
-                                <td>
-                                    @expense.Date.ToShortDateString()
-                                </td>
+                                    <td>
+                                        @expense.Date.ToShortDateString()
+                                    </td>
 
-                                <td>
-                                    @if (deleteConfirmationId == expense.Id)
-                                    {
-                                        <span class="me-2">
-                                            Delete?
-                                        </span>
+                                    <td>
+                                        @if (deleteConfirmationId == expense.Id)
+                                        {
+                                            <span class="me-2">
+                                                Delete?
+                                            </span>
 
-                                        <button type="button" class="btn btn-sm btn-danger me-1"
-                                                @onclick="() => ConfirmDelete(expense.Id)">
-                                            Yes
-                                        </button>
+                                            <button type="button" class="btn btn-sm btn-danger me-1"
+                                                    @onclick="() => ConfirmDelete(expense.Id)">
+                                                Yes
+                                            </button>
 
-                                        <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelDelete">
-                                            No
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                                @onclick="() => StartEditing(expense)">
-                                            Edit
-                                        </button>
+                                            <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelDelete">
+                                                No
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                                    @onclick="() => StartEditing(expense)">
+                                                Edit
+                                            </button>
 
-                                        <button type="button" class="btn btn-sm btn-outline-danger"
-                                                @onclick="() => AskDelete(expense.Id)">
-                                            Delete
-                                        </button>
-                                    }
-                                </td>
-                            </tr>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    @onclick="() => AskDelete(expense.Id)">
+                                                Delete
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
@@ -284,8 +301,7 @@
 
 </div>
 @code {
-
-
+ 
     private List<Expense> expenses = [];
     private Expense formExpense = CreateNewExpense();
     private bool isLoading = true;
@@ -310,21 +326,25 @@
 
     private async Task LoadExpensesAsync()
     {
-        isLoading = true;
-        errorMessage = null;
-
         try
         {
-            expenses = await ExpenseService.GetAllAsync(
-                searchText,
-                selectedCategory,
-                startDate,
-                endDate,
-                sortOrder == "oldest" );
+            isLoading = true;
+            errorMessage = null;
+
+            expenses =
+                  await ExpenseService.GetAllAsync(
+        searchText,
+        selectedCategory,
+        startDate,
+        endDate,
+        sortOrder == "oldest");
         }
-        catch
+        catch (Exception ex)
         {
-            errorMessage = "Unable to load expenses.";
+            errorMessage =
+                "Unable to load expenses.";
+
+            Console.WriteLine(ex);
         }
         finally
         {
@@ -440,7 +460,7 @@
         selectedCategory = string.Empty;
         startDate = null;
         endDate = null;
-        sortOrder  = "newest";
+        sortOrder = "newest";
 
         await LoadExpensesAsync();
     }

@@ -17,7 +17,8 @@
 @if (loading)
 {
     <p>Loading dashboard...</p>
-}else if(errorMessage != null)
+}
+else if (errorMessage != null)
 {
     <div class="alert alert-danger">
         @errorMessage
@@ -140,6 +141,9 @@ else
     {
         try
         {
+            loading = true;
+            errorMessage = null;
+
             totalSpending =
                 await ExpenseService.GetTotalSpendingAsync();
 
@@ -157,7 +161,9 @@ else
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message;
+            errorMessage = "Unable to load dashboard data.";
+
+            Console.WriteLine(ex);
         }
         finally
         {
