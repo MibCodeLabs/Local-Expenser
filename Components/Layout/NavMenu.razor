@@ -1,71 +1,77 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="">
+            <img src="/favicon.svg" alt="Logo" class="brand-icon">
+            <span>LocalExpenser</span>
+        </a>
+    </div>
+</div>
 <AuthorizeView>
 
     <Authorized>
 
-        <span class="nav-link">
-            Hello, @context.User.Identity?.Name
-        </span>
+        <div class="auth-section">
+            <span class="auth-user">
+                Welcome Back, @context.User.Identity?.Name
 
-        <a class="nav-link"
-           href="/logout">
-            Logout
-        </a>
+                <a class="auth-link" href="/logout">
+                    <img class="menu-icon" src="/logout.svg" alt="Expenses">
+                    Logout
+                </a>
+            </span>
+        </div>
+
+<input id="nav-toggle" type="checkbox" class="navbar-toggler" />
+
+<label for="nav-toggle" class="navbar-toggle-label">
+    ☰
+</label>
+
+        <div class="nav-scrollable" ">
+            <nav class="nav flex-column">
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        @* <span class="" aria-hidden="true"></span>  *@
+                        <img class="menu-icon" src="/writing.svg" alt="Expenses">
+                        Dashboard
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="expenses">
+                        <img class="menu-icon" src="/calculation.svg" alt="Expenses">
+                        Expenses
+                    </NavLink>
+                </div>
+            </nav>
+
+        </div>
 
     </Authorized>
 
 
     <NotAuthorized>
 
-        <a class="nav-link"
-           href="/login">
-            Login
-        </a>
+        <div class="auth-section">
+            <a class="auth-link" href="/login">
+                <img class="menu-icon" src="/login.svg" alt="Expenses">
 
-        <a class="nav-link"
-           href="/register">
-            Register
-        </a>
+                Login
+            </a>
 
+            <a class="auth-link" href="/register">
+                <img class="menu-icon" src="/register.svg" alt="Expenses">
+
+                Register
+            </a>
+        </div>
     </NotAuthorized>
 
 </AuthorizeView>
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">LocalExpenser </a>
-    </div>
-</div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-        <div class="nav-item px-4">
-            <NavLink class="nav-link" href="expenses">
-                <span class="bi bi-wallet2-nav-menu" aria-hidden="true"></span>
-                Expenses
-            </NavLink>
-        </div>
-    </nav>
-
-</div>
 

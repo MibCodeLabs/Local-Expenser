@@ -2,10 +2,13 @@
 @page "/expenses"
 @rendermode InteractiveServer
 
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
 @using PersonalExpenseTracker.Models
 @using PersonalExpenseTracker.Services
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ExpenseService ExpenseService
 
 <PageTitle>Expenses</PageTitle>
@@ -321,6 +324,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider
+      .GetAuthenticationStateAsync();
+
+        formExpense.UserId =
+            authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
         await LoadExpensesAsync();
     }
 

@@ -7,6 +7,9 @@ public class Expense
     public int Id { get; set; }
 
     [Required]
+    public string UserId { get; set; } = string.Empty;
+
+    [Required]
     public string Title { get; set; } = string.Empty;
 
     [Range(typeof(decimal), "0.01", "99999999")]
